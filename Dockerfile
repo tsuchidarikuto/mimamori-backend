@@ -1,19 +1,17 @@
-# 
-FROM python:3.12-slim
+# 開発用：シンプル & 高速ビルド
+FROM python:3.11-slim
 
-# 
 WORKDIR /app
 
-# 
-COPY ./requirements.txt ./requirements.txt
+# 開発用：キャッシュ最適化
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+# アプリコピー
+COPY . .
 
-# 
-COPY ./app ./app
-
+# 開発用：ホットリロード対応
 EXPOSE 8000
 
-# 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+# 開発コマンド：--reload付き
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
