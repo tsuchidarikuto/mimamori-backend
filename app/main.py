@@ -5,7 +5,7 @@ app = FastAPI(title="見守りぬいぐるみ開発版")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -13,7 +13,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"message": "Hello, World!"}
+    return {"message": "Hello, Teraoka!"}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
