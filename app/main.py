@@ -12,6 +12,7 @@ app.add_middleware(
 )
 
 #test
+#test1
 @app.get("/")
 async def root():
     return {"message": "Hello, Teraoka!"}
