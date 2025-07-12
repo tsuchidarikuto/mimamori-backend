@@ -20,6 +20,7 @@ async def root():
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     # WebSocket処理をここに書く
+    #test 
 
 if __name__ == "__main__":
     import uvicorn
