@@ -3,6 +3,7 @@ from fastapi.responses import Response
 from services import AIService, VoiceService
 from models import HealthResponse
 from api.dependencies import get_ai_service, get_voice_service
+from db import add_log # ★ データベースログ記録関数をインポート
 
 router = APIRouter()
 
@@ -24,6 +25,11 @@ async def process_audio(
             raise HTTPException(status_code=500, detail="Could not generate response")
         
         print(f"Assistant: {response_text}")
+
+        # ★★★ ここからログ記録処理を追加 ★★★
+        conversation_log = f"User: {user_text} | Assistant: {response_text}"
+        await add_log(conversation_log) # ★ 会話ログを非同期で記録
+        # ★★★ ログ記録処理ここまで ★★★
         
         audio_data = await voice_service.text_to_speech(response_text)
         if not audio_data:
