@@ -41,7 +41,7 @@ class DatabaseService:
                     emotional_graph = [
                         EmotionalDataPoint(
                             time=item['time'],
-                            score=item['score'],
+                            score=float(item['score']),  # integerからfloatに変換
                             label=item['label']
                         )
                         for item in emotional_response.data
@@ -155,7 +155,7 @@ class DatabaseService:
                         {
                             'daily_summary_id': summary_id,
                             'time': point.time,
-                            'score': point.score,
+                            'score': int(round(float(point.score))),  # integerに変換（四捨五入）
                             'label': point.label
                         }
                         for point in summary.emotional_graph
@@ -176,4 +176,23 @@ class DatabaseService:
         except Exception as e:
             print(f"Error saving daily summary: {e}")
             return None
+    
+    async def delete_daily_summary(self, person_id: int, date: str) -> bool:
+        """日次サマリーを削除（関連する感情データも削除）"""
+        try:
+            # まず該当するサマリーを取得
+            summary = await self.get_daily_summary(person_id, date)
+            if not summary:
+                return False
+            
+            # 関連する感情データを削除
+            self.supabase.table('emotional_data').delete().eq('daily_summary_id', summary.id).execute()
+            
+            # サマリー本体を削除
+            self.supabase.table('daily_summaries').delete().eq('id', summary.id).execute()
+            
+            return True
+        except Exception as e:
+            print(f"Error deleting daily summary: {e}")
+            return False
 
