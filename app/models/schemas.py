@@ -47,5 +47,5 @@ class DailySummary(BaseModel):
 
 class DashboardData(BaseModel):
     elderlyPerson: ElderlyPerson
-    dailySummary: DailySummary
+    dailySummary: Optional[DailySummary]
     conversations: List[RawConversation]
