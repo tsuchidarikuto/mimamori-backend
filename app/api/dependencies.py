@@ -1,5 +1,5 @@
 from config import settings
-from services import AIService, VoiceService
+from services import AIService, VoiceService, DatabaseService
 
 def get_ai_service() -> AIService:
     return AIService(
@@ -14,4 +14,10 @@ def get_voice_service() -> VoiceService:
     return VoiceService(
         voicevox_url=settings.voicevox_url,
         speaker_id=settings.speaker_id
+    )
+
+def get_database_service() -> DatabaseService:
+    return DatabaseService(
+        supabase_url=settings.supabase_url,
+        supabase_key=settings.supabase_key
     )
