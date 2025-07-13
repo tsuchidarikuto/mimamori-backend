@@ -5,27 +5,25 @@ load_dotenv()
 
 class Settings:
     def __init__(self):
-        # 既存のOpenAI APIキーの読み込み
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
-
-        # Supabaseの設定を追加
-        self.supabase_url = os.getenv("SUPABASE_URL")
-        self.supabase_key = os.getenv("SUPABASE_KEY")
-
-        # 必須の環境変数が設定されているかチェック
-        if not self.openai_api_key:
-            raise ValueError("OPENAI_API_KEY not set in .env file")
-        if not self.supabase_url or not self.supabase_key:
-            raise ValueError("SUPABASE_URL and/or SUPABASE_KEY not set in .env file")
+        # 必須環境変数
+        self.openai_api_key = self._get_required_env("OPENAI_API_KEY")
+        self.supabase_url = self._get_required_env("SUPABASE_URL")
+        self.supabase_key = self._get_required_env("SUPABASE_KEY")
         
-        # 既存のその他の設定
-        self.voicevox_url = "http://localhost:50021"
-        self.speaker_id = 81
-        self.max_tokens = 150
-        self.transcribe_model = "gpt-4o-mini-transcribe"
-        self.chat_model = "gpt-4o-mini"
-        self.language = "ja"
+        # オプション設定（デフォルト値あり）
+        self.voicevox_url = os.getenv("VOICEVOX_URL", "http://localhost:50021")
+        self.speaker_id = int(os.getenv("SPEAKER_ID", "3"))
+        self.max_tokens = int(os.getenv("MAX_TOKENS", "150"))
+        self.transcribe_model = os.getenv("TRANSCRIBE_MODEL", "whisper-1")
+        self.chat_model = os.getenv("CHAT_MODEL", "gpt-4o-mini")
+        self.language = os.getenv("LANGUAGE", "ja")
         self.host = os.getenv("SERVER_HOST", "0.0.0.0")
         self.port = int(os.getenv("SERVER_PORT", "8000"))
+    
+    def _get_required_env(self, key: str) -> str:
+        value = os.getenv(key)
+        if not value:
+            raise ValueError(f"{key} not set in .env file")
+        return value
 
 settings = Settings()
