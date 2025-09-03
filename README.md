@@ -1,138 +1,275 @@
-# mimamori-backend
+# 見守りシステム バックエンド
 
-見守りぬいぐるみ開発版のバックエンドAPI
+高齢者見守りシステムのバックエンドAPI。音声処理、会話管理、日次サマリー生成などの機能を提供します。
 
-## 概要
+## システム構成
 
-このプロジェクトは「見守りぬいぐるみ」システムのバックエンドAPIです。FastAPIを使用して構築されており、WebSocket通信をサポートしています。
+### アーキテクチャ
 
-## 技術スタック
+3層アーキテクチャを採用し、責務の分離とメンテナンス性を重視した設計。
 
-- **フレームワーク**: FastAPI
+- **UI層 (routers)**: HTTPリクエスト/レスポンス処理
+- **Service層 (services)**: ビジネスロジック
+- **Repository層 (repositories)**: データアクセス、外部API連携
+
+### 技術スタック
+
+- **言語**: Python 3.11+
+- **フレームワーク**: FastAPI 0.104.1
 - **サーバー**: Uvicorn
-- **コンテナ**: Docker & Docker Compose
-- **言語**: Python 3.x
+- **パッケージ管理**: uv
+- **データベース**: Supabase
+- **AI**: OpenAI API
+- **音声合成**: VoiceVox
 
-## 機能
+## 機能概要
 
-- REST API エンドポイント
-- WebSocket通信サポート
-- CORS設定（フロントエンド連携用）
+### 音声処理
+- 音声ファイルのテキスト変換（Whisper）
+- AI応答生成（GPT-4o-mini）
+- テキスト音声合成（VoiceVox）
+
+### データ管理
+- 高齢者情報管理
+- 会話履歴記録・検索
+- 日次サマリー自動生成
+- 感情分析データ保存
+
+### API機能
+- RESTful API設計
+- 適切なHTTPステータスコード
+- 構造化エラーレスポンス
+- OpenAPI仕様書自動生成
 
 ## セットアップ
 
 ### 前提条件
 
-- Docker Desktop がインストールされていること
-- Git がインストールされていること
+- Python 3.11以上
+- uv パッケージマネージャー
+- Supabaseアカウント
+- OpenAI APIキー
+- VoiceVoxサーバー（ローカル起動）
 
-### インストール手順
+### 環境変数設定
 
-1. リポジトリをクローン
-```bash
-git clone [リポジトリURL]
-cd mimamori-backend
+`.env` ファイルを作成し、以下を設定：
+
+```env
+# OpenAI API設定
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Supabase設定
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_KEY=your_supabase_anon_key_here
+
+# サーバー設定
+HOST=0.0.0.0
+PORT=8000
+
+# VoiceVox設定（オプション）
+VOICEVOX_URL=http://localhost:50021
+SPEAKER_ID=3
 ```
 
-2. Dockerコンテナを起動
-```bash
-docker-compose up -d
-```
+### インストール・起動
 
-3. APIが起動していることを確認
 ```bash
-curl http://localhost:8000
-# レスポンス: {"message":"Hello, World!"}
-```
+# 依存関係インストール
+uv sync
 
-### ローカル開発（Dockerを使わない場合）
-
-1. Python仮想環境を作成
-```bash
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-```
-
-2. 依存関係をインストール
-```bash
-pip install -r requirements.txt
-```
-
-3. サーバーを起動
-```bash
-python app/main.py
+# 開発サーバー起動
+uv run python app/main.py
 ```
 
 ## API仕様
 
-### エンドポイント
+### エンドポイント一覧
 
-#### GET /
-- **説明**: ヘルスチェック用エンドポイント
-- **レスポンス**: `{"message": "Hello, World!"}`
+| メソッド | パス | 説明 |
+|---------|------|------|
+| GET | `/health` | ヘルスチェック |
+| POST | `/api/v1/conversations/process-audio` | 音声処理 |
+| GET | `/api/v1/elderly/{person_id}` | 高齢者情報取得 |
+| GET | `/api/v1/elderly/{person_id}/conversations` | 会話履歴取得 |
+| GET | `/api/v1/elderly/{person_id}/summaries` | 日次サマリー取得 |
+| POST | `/api/v1/elderly/{person_id}/summaries` | 日次サマリー生成 |
+| GET | `/api/v1/elderly/{person_id}/dashboard` | ダッシュボードデータ取得 |
 
-#### WebSocket /ws
-- **説明**: WebSocket接続用エンドポイント
-- **用途**: リアルタイム通信（実装予定）
+### 認証
 
-### CORS設定
+現在は認証なしで動作。将来的にJWTベース認証を予定。
 
-現在、以下のオリジンからのアクセスを許可しています：
-- `http://localhost:3001`
+## 開発
 
-## 開発方法
+### ディレクトリ構造
 
-### コードの変更
-
-`app/main.py`を編集すると、Uvicornのホットリロード機能により自動的に反映されます。
-
-### 新しい依存関係の追加
-
-1. ローカル環境の場合
-```bash
-pip install [パッケージ名]
-pip freeze > requirements.txt
+```
+app/
+├── main.py                 # エントリーポイント
+├── routers/               # UI層（HTTPハンドラ）
+│   ├── conversation_router.py
+│   ├── elderly_router.py
+│   └── health_router.py
+├── services/              # Service層（ビジネスロジック）
+│   ├── conversation_service.py
+│   ├── elderly_service.py
+│   └── summary_service.py
+├── repositories/          # Repository層（データアクセス）
+│   ├── database_repository.py
+│   ├── openai_repository.py
+│   └── voice_repository.py
+├── interfaces/            # インターフェース定義
+│   ├── repositories.py
+│   └── services.py
+├── schemas/               # データモデル
+│   ├── models.py
+│   ├── requests.py
+│   └── responses.py
+├── core/                  # 共通機能
+│   ├── container.py       # DIコンテナ
+│   ├── dependencies.py   # 依存性注入
+│   └── exceptions.py     # カスタム例外
+└── config/               # 設定
+    └── settings.py
 ```
 
-2. Dockerコンテナの再ビルド
-```bash
-docker-compose down
-docker-compose up -d --build
+### 依存性注入
+
+DIコンテナパターンを採用し、シングルトンでサービスインスタンスを管理。
+
+```python
+from app.core.dependencies import get_conversation_service
+
+# ルーター内で使用
+async def process_audio(
+    audio: UploadFile,
+    service: ConversationServiceInterface = Depends(get_conversation_service)
+):
+    return await service.process_voice_conversation(audio)
 ```
+
+### テスト
+
+```bash
+# 単体テスト（予定）
+uv run pytest tests/
+
+# 型チェック
+uv run mypy app/
+```
+
+## デプロイ
+
+### Docker
+
+```bash
+# イメージビルド
+docker build -t mimamori-backend .
+
+# コンテナ起動
+docker run -p 8000:8000 --env-file .env mimamori-backend
+```
+
+### 本番環境
+
+- 環境変数の適切な設定
+- CORS設定の本番対応
+- ログレベルの調整
+- セキュリティヘッダーの追加
 
 ## トラブルシューティング
 
-### ポート8000が使用中の場合
+### よくある問題
 
+**ポート8000使用エラー**
 ```bash
-# 使用中のプロセスを確認
 lsof -i :8000
-
-# Dockerコンテナを確認
-docker ps
-
-# 必要に応じてコンテナを停止
-docker-compose down
+docker ps | grep 8000
 ```
 
-### Dockerコンテナのログを確認
+**依存関係エラー**
+```bash
+uv sync --frozen
+```
+
+**環境変数未設定**
+- `.env`ファイルの存在確認
+- 必須環境変数の設定確認
+
+### ログ確認
 
 ```bash
-docker-compose logs -f app
+# 開発時
+uv run python app/main.py
+
+# Docker使用時
+docker logs [container-id]
 ```
 
 
-## コントリビューション
 
-1. featureブランチを作成
-```bash
-git checkout -b feature/your-feature-name
+
+
+## ファイル構造
+
+```
+app/
+├── main_new.py              # 新アーキテクチャのエントリポイント
+├── routers/                 # UI層
+│   ├── conversation_router.py
+│   ├── elderly_router.py
+│   └── health_router.py
+├── services_new/            # Service層
+│   ├── conversation_service.py
+│   ├── elderly_service.py
+│   └── summary_service.py
+├── repositories/            # Repository層
+│   ├── database_repository.py
+│   ├── openai_repository.py
+│   └── voice_repository.py
+├── interfaces/              # インターフェース定義
+│   ├── repositories.py
+│   └── services.py
+├── schemas/                 # データモデル
+│   ├── models.py
+│   ├── requests.py
+│   └── responses.py
+├── core/                    # 共通機能
+│   ├── container.py         # DIコンテナ
+│   ├── dependencies.py     # 依存性注入ヘルパー
+│   └── exceptions.py        # カスタム例外
+└── config/                  # 設定
+    └── settings.py
 ```
 
-2. 変更をコミット
-```bash
-git add .
-git commit -m "feat: 機能の説明"
+## 依存関係の流れ
+
+```
+UI Layer (Router)
+    ↓ depends on
+Service Layer
+    ↓ depends on
+Repository Layer
+    ↓ depends on
+External Systems (DB, APIs)
 ```
 
-3. プルリクエストを作成
+
+
+## API エンドポイント構造
+
+### 新API（v2）
+- `POST /api/v2/conversations/process-audio` - 音声処理
+- `GET /api/v2/elderly/{person_id}` - 高齢者情報取得
+- `GET /api/v2/elderly/{person_id}/conversations` - 会話履歴取得
+- `GET /api/v2/elderly/{person_id}/summaries` - サマリー取得
+- `POST /api/v2/elderly/{person_id}/summaries` - サマリー生成
+- `GET /api/v2/elderly/{person_id}/dashboard` - ダッシュボードデータ
+- `GET /health` - ヘルスチェック
+
+
+
+
+
+
