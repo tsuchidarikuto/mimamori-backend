@@ -46,6 +46,6 @@ class DailySummary(BaseModel):
     emotional_graph: List[EmotionalDataPoint]
 
 class DashboardData(BaseModel):
-    elderlyPerson: ElderlyPerson
+    elderlyPerson: Optional[ElderlyPerson]
     dailySummary: Optional[DailySummary]
     conversations: List[RawConversation]
