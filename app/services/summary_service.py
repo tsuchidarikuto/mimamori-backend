@@ -122,7 +122,7 @@ class SummaryService(SummaryServiceInterface):
             speaker = "高齢者" if conv.speaker == "user" else "ロボット"
             formatted_lines.append(f"[{time}] {speaker}: {conv.content}")
         
-        return "\\n".join(formatted_lines)
+        return "\n".join(formatted_lines)
     
     async def _generate_summary_with_gpt(self, conversations: List[RawConversation]) -> Optional[dict]:
         """GPT-4o-miniを使って会話からサマリーを生成"""
