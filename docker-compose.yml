@@ -1,5 +1,30 @@
 # docker-compose.yml
 services:
+  # VoiceVoxエンジンサービス
+  voicevox:
+    # 公式のVOICEVOX Dockerイメージを使用
+    image: voicevox/voicevox_engine:cpu-latest
+    ports:
+      - "50021:50021"  # VOICEVOXのデフォルトポート
+    restart: unless-stopped
+    # ヘルスチェックでサービスが正常に起動しているか確認
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:50021/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+    # メモリ制限（必要に応じて調整）
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  # FastAPIアプリケーションサービス
   app:
     build: .
     ports:
@@ -8,3 +33,15 @@ services:
       - .:/app
     environment:
       - ENV=development
+      - VOICEVOX_URL=http://voicevox:50021  # コンテナ間通信用のURL
+    depends_on:
+      voicevox:
+        condition: service_healthy  # VOICEVOXが健全な状態になるまで待機
+    networks:
+      - app-network
+    restart: unless-stopped
+
+# ネットワーク定義
+networks:
+  app-network:
+    driver: bridge
